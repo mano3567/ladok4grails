@@ -31,3 +31,8 @@
 
 # "temporary" build files
 /target
+build
+out
+.gradle
+.idea
+db/dbConfig.groovy
