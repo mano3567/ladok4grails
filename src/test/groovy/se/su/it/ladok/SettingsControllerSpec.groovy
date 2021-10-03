@@ -14,8 +14,10 @@ class SettingsControllerSpec extends Specification implements ControllerUnitTest
 
     void "test something useful"() {
         given:
+
         when:
         1+2
+
         then:
         1<2
     }

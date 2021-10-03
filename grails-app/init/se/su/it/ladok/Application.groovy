@@ -74,25 +74,14 @@ class Application extends GrailsAutoConfiguration  implements EnvironmentAware {
         }
 
         Properties quartzProperties = new Properties()
-        if (InetAddress.localHost.hostName?.contains("car")) {
-            println("### Enabling quartz! This is a car server. ###")
-            quartzProperties.setProperty("quartz.pluginEnabled", "true")
-            quartzProperties.setProperty("quartz.autoStartup", "true")
-            quartzProperties.setProperty("quartz.jdbcStore", "true")
-            quartzProperties.setProperty("quartz.waitForJobsToCompleteOnShutdown", "false")
-            quartzProperties.setProperty("quartz.purgeQuartzTablesOnStartup", "true")
-            quartzProperties.setProperty("quartz.exposeSchedulerInRepository", "true")
-            quartzProperties.setProperty("quartz.scheduler.instanceName", "ladokScheduler")
-        } else {
-            println("### Disable quartz! This is not a car server. ###")
-            quartzProperties.setProperty("quartz.pluginEnabled", "true")
-            quartzProperties.setProperty("quartz.autoStartup", "false")
-            quartzProperties.setProperty("quartz.jdbcStore", "true")
-            quartzProperties.setProperty("quartz.waitForJobsToCompleteOnShutdown", "false")
-            quartzProperties.setProperty("quartz.purgeQuartzTablesOnStartup", "false")
-            quartzProperties.setProperty("quartz.exposeSchedulerInRepository", "false")
-            quartzProperties.setProperty("quartz.scheduler.instanceName", "ladokScheduler")
-        }
+        println("### Enabling quartz! This is a car server. ###")
+        quartzProperties.setProperty("quartz.pluginEnabled", "true")
+        quartzProperties.setProperty("quartz.autoStartup", "true")
+        quartzProperties.setProperty("quartz.jdbcStore", "true")
+        quartzProperties.setProperty("quartz.waitForJobsToCompleteOnShutdown", "false")
+        quartzProperties.setProperty("quartz.purgeQuartzTablesOnStartup", "true")
+        quartzProperties.setProperty("quartz.exposeSchedulerInRepository", "true")
+        quartzProperties.setProperty("quartz.scheduler.instanceName", "ladokScheduler")
         environment.propertySources.addFirst(new PropertiesPropertySource("quartz", quartzProperties))
 
         if (grails.util.Environment.current == grails.util.Environment.DEVELOPMENT || grails.util.Environment.current == grails.util.Environment.TEST) {

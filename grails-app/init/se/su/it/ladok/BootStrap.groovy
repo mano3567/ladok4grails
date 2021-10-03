@@ -1,6 +1,8 @@
 package se.su.it.ladok
 
 class BootStrap {
+    def quartzScheduler
+
     def init = { servletContext ->
         Edu.values().each {Edu edu ->
             if(ConfigValue.countByName("ladok3.enabled.for.${edu.toString()}")<1) {
@@ -14,6 +16,7 @@ class BootStrap {
                 }
             }
         }
+        quartzScheduler.start()
     }
 
     def destroy = {

@@ -1,11 +1,12 @@
 package se.su.it.ladok
 
-import grails.testing.services.ServiceUnitTest
+import grails.testing.web.controllers.ControllerUnitTest
 import spock.lang.Specification
 
-class SettingsServiceSpec extends Specification implements ServiceUnitTest<SettingsService>{
+class Ladok3ControllerSpec extends Specification implements ControllerUnitTest<Ladok3Controller> {
 
     def setup() {
+        controller.ladok3Service = Mock(Ladok3Service)
     }
 
     def cleanup() {

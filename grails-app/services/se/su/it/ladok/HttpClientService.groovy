@@ -2,6 +2,7 @@ package se.su.it.ladok
 
 import grails.gorm.transactions.NotTransactional
 import grails.gorm.transactions.Transactional
+import groovy.json.JsonSlurper
 import org.apache.http.HttpEntity
 import org.apache.http.NameValuePair
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -27,8 +28,10 @@ import java.security.KeyStore
 class HttpClientService {
     SettingsService settingsService
 
+    Map<Edu, CloseableHttpClient> httpClientsForL3ByEdy = [:]
+
     @NotTransactional
-    CloseableHttpClient getLadok3Client(Edu edu) {
+    CloseableHttpClient initiateLadok3Client(Edu edu) {
         CloseableHttpClient httpClient = null
         if(edu) {
             String clientCertificateFilePath = settingsService.getPathForCertByEdu(edu)
@@ -52,20 +55,18 @@ class HttpClientService {
                 SSLConnectionSocketFactory sslConnectionFactory = new SSLConnectionSocketFactory(context)
                 builder.setSSLSocketFactory(sslConnectionFactory)
 
-                Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory> create()
-                        .register("https", sslConnectionFactory)
-                        .build();
+                Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslConnectionFactory).build()
 
                 HttpClientConnectionManager ccm = new PoolingHttpClientConnectionManager(registry)
                 ccm.setMaxTotal(40)
                 ccm.setDefaultMaxPerRoute(40)
 
                 RequestConfig requestConfig = RequestConfig.custom()
-                        .setCookieSpec(CookieSpecs.STANDARD)//Ladok3 servers needs this for login persistens
-                        .setConnectTimeout(10000)//10 seconds
-                        .setConnectionRequestTimeout(120000)//20 minutes
-                        .setSocketTimeout(120000)//20 minutes
-                        .build();
+                        .setCookieSpec(CookieSpecs.STANDARD) //Ladok3 servers needs this for login persistens
+                        .setConnectTimeout(10000) //10 seconds
+                        .setConnectionRequestTimeout(120000) //20 minutes
+                        .setSocketTimeout(120000) //20 minutes
+                        .build()
 
                 builder.setConnectionManager(ccm)
                 builder.setDefaultRequestConfig(requestConfig)
@@ -76,9 +77,21 @@ class HttpClientService {
     }
 
     @NotTransactional
+    synchronized CloseableHttpClient getLadok3Client(Edu edu) {
+        CloseableHttpClient httpClient = null
+        if(edu) {
+            if(!httpClientsForL3ByEdy.get(edu)) {
+                httpClientsForL3ByEdy.put(edu, initiateLadok3Client(edu))
+            }
+            httpClient = httpClientsForL3ByEdy.get(edu)
+        }
+        return httpClient
+    }
+
+    @NotTransactional
     Object getLadok3MapFromJsonResponseByUrlAndType(Edu edu, String url, String acceptHeaderValue, Map query = [:], boolean noMap=false) {
         Object retObject = null
-        def client = getLadok3Client(edu)
+        CloseableHttpClient client = getLadok3Client(edu)
 
         URIBuilder uriBuilder = new URIBuilder(settingsService.getLadok3UrlForEdu(edu) + url)
         if (query && query.size() > 0) {
@@ -115,6 +128,7 @@ class HttpClientService {
                                 if (noMap) {
                                     retObject = inputTxt
                                 } else {
+                                    JsonSlurper slurper = new JsonSlurper()
                                     retObject = slurper.parseText(inputTxt) as Map
                                 }
                             } catch (IOException ex2) {

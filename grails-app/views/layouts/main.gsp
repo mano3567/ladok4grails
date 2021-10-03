@@ -26,14 +26,15 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLinkLocal" role="button" data-bs-toggle="dropdown" aria-expanded="false">Inom system</a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLinkLocal">
+                                <li><g:link controller="ladok3" action="index" class="dropdown-item">Ladok3</g:link></li>
                                 <li><g:link controller="settings" action="list" class="dropdown-item">Settings</g:link></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Lokala grannar</a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <li><a class="dropdown-item" href=https://www.su.se/" title="su">SU</a></li>
-                                <li><a class="dropdown-item" href=https://vfu.su.se/" title="vfu">VFU</a></li>
+                                <li><a class="dropdown-item" href="https://www.su.se/" title="su">SU</a></li>
+                                <li><a class="dropdown-item" href="https://vfu.su.se/" title="vfu">VFU</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
