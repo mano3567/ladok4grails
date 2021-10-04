@@ -9,6 +9,31 @@ class SettingsService {
     GrailsApplication grailsApplication
 
     @Transactional(readOnly = true)
+    String getLadok3LatestEventUidForEdu(Edu edu) {
+        String uid = null
+        if(edu) {
+            ConfigValue configValue = ConfigValue.findByName("ladok3.eventuid,for.${edu.toString()}")
+            uid = configValue?.value
+        }
+    }
+
+    @Transactional(readOnly = true)
+    int getLadok3LatestFeedIdForEdu(Edu edu) {
+        int feedId = -1
+        if(edu) {
+            ConfigValue configValue = ConfigValue.findByName("ladok3.feedid,for.${edu.toString()}")
+            if(configValue?.value) {
+                try {
+                    feedId = Integer.parseInt(configValue.value)
+                } catch(Throwable exception) {
+                    feedId = -1
+                }
+            }
+        }
+        return feedId
+    }
+
+    @Transactional(readOnly = true)
     String getLadok3UrlForEdu(Edu edu) {
         String url = null
         if(edu) {
@@ -66,6 +91,24 @@ class SettingsService {
         if(edu) {
             ConfigValue configValue = ConfigValue.findOrCreateByName("ladok3.url.for.${edu.toString()}")
             configValue.value = url?.trim()
+            configValue.save(failOnError: true)
+        }
+    }
+
+    @Transactional
+    void setLadok3LatestEventUidForEdu(Edu edu, String uid) {
+        if(edu) {
+            ConfigValue configValue = ConfigValue.findOrCreateByNameAndValueType("ladok3.eventuid,for.${edu.toString()}", ConfigValueType.STRING)
+            configValue.value = (uid?.trim()?.length()>0) ? uid.trim() : null
+            configValue.save(failOnError: true)
+        }
+    }
+
+    @Transactional
+    void setLadok3LatestFeedIdForEdu(Edu edu, int feedId) {
+        if(edu) {
+            ConfigValue configValue = ConfigValue.findOrCreateByNameAndValueType("ladok3.feedid,for.${edu.toString()}", ConfigValueType.INTEGER)
+            configValue.value = (feedId>0) ? feedId.toString() : "0"
             configValue.save(failOnError: true)
         }
     }
