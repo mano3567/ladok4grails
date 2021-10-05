@@ -24,6 +24,9 @@ class UpdateL3BasicsJob {
                 ladok3Service.updateL3Organizations(edu)
                 ladok3Service.updateL3Periods(edu)
                 ladok3Service.updateL3StudieLokalisering(edu)
+                ladok3Service.updateL3StudieTakt(edu)
+                ladok3Service.updateL3UndervisningsForm(edu)
+                ladok3Service.updateL3UndervisningsTid(edu)
             }
         }
         log.info "UpdateL3BasicsJob.execute(): is done in ${System.currentTimeMillis()-start} ms"

@@ -328,4 +328,142 @@ class Ladok3Service {
             }
         }
     }
+
+    @Transactional
+    void updateL3StudieTakt(Edu edu) {
+        int count = 0
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/kataloginformation/grunddata/studietakt", "application/vnd.ladok-kataloginformation+json")
+        log.info("Processing (${response?.Studietakt?response.Studietakt.size():0}) updateLadok3StudieTakt for edu: ${edu}")
+        if (response && response.Studietakt) {
+            response.Studietakt.each { Map studietakt ->
+                if(!edu || (!studietakt?.ID || studietakt.ID.isEmpty())) {
+                    throw new Exception("Missing <edu> or <studietakt.ID")
+                }
+                if(studietakt) {
+                    int takt = studietakt.ID ? Integer.parseInt(studietakt.ID as String) : -1
+                    L3StudieTakt l3Studietakt = L3StudieTakt.findOrCreateByEduAndLadokId(edu, takt)
+                    l3Studietakt.benamningEn = studietakt.Benamning?.en as String
+                    l3Studietakt.benamningSv = studietakt.Benamning?.sv as String
+                    l3Studietakt.beskrivningEn = studietakt.Beskrivning?.en as String
+                    l3Studietakt.beskrivningSv = studietakt.Beskrivning?.sv as String
+                    l3Studietakt.kod = studietakt.Kod as String
+                    l3Studietakt.ladokId = studietakt.ID ? Integer.parseInt(studietakt.ID as String) : -1
+                    l3Studietakt.larosateId = studietakt.LarosateID ? Integer.parseInt(studietakt.LarosateID as String) : -1
+
+                    String slutDatum = studietakt.Giltighetsperiod?.Slutdatum as String
+                    if(slutDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                        l3Studietakt.slutDatum = sdf.parse(slutDatum)
+                    } else {
+                        l3Studietakt.slutDatum = null
+                    }
+
+                    String startDatum = studietakt.Giltighetsperiod?.Startdatum as String
+                    if(startDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                        l3Studietakt.startDatum = sdf.parse(startDatum)
+                    } else {
+                        l3Studietakt.startDatum = null
+                    }
+
+                    l3Studietakt.takt = studietakt.Takt ? Integer.parseInt(studietakt.Takt as String) : -1
+
+                    l3Studietakt.save(failOnError: true)
+                    count++
+                    if((count % 100) == 0) {
+                        log.info("Number of studietakter this far (${edu}): ${count}")
+                    }
+                }
+            }
+        }
+    }
+
+    @Transactional
+    void updateL3UndervisningsForm(Edu edu) {
+        int count = 0
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/grunddata/undervisningsform", "application/vnd.ladok-utbildningsinformation+json")
+        log.info("Processing (${response?.Undervisningsform?response.Undervisningsform.size():0}) updateLadok3Undervisningsform for edu: ${edu}")
+        if (response && response.Undervisningsform) {
+            response.Undervisningsform.each { Map undervisningsform ->
+                if(!edu || (!undervisningsform?.ID || undervisningsform.ID.isEmpty())) {
+                    throw new Exception("Missing <edu> or <undervisningsform.ID")
+                }
+                if(undervisningsform) {
+                    int ladokId = undervisningsform.ID ? Integer.parseInt(undervisningsform.ID as String) : -1
+                    L3UndervisningsForm l3Undervisningsform = L3UndervisningsForm.findOrCreateByEduAndLadokId(edu, ladokId)
+                    l3Undervisningsform.benamningEn = undervisningsform.Benamning?.en as String
+                    l3Undervisningsform.benamningSv = undervisningsform.Benamning?.sv as String
+                    l3Undervisningsform.beskrivningEn = undervisningsform.Beskrivning?.en as String
+                    l3Undervisningsform.beskrivningSv = undervisningsform.Beskrivning?.sv as String
+                    l3Undervisningsform.kod = undervisningsform.Kod as String
+                    l3Undervisningsform.larosateId = undervisningsform.LarosateID ? Integer.parseInt(undervisningsform.LarosateID as String) : -1
+                    String slutDatum = undervisningsform.Giltighetsperiod?.Slutdatum as String
+                    if(slutDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                        l3Undervisningsform.slutDatum = sdf.parse(slutDatum)
+                    } else {
+                        l3Undervisningsform.slutDatum = null
+                    }
+                    String startDatum = undervisningsform.Giltighetsperiod?.Startdatum as String
+                    if(startDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                        l3Undervisningsform.startDatum = sdf.parse(startDatum)
+                    } else {
+                        l3Undervisningsform.startDatum = null
+                    }
+
+                    l3Undervisningsform.save(failOnError: true)
+                    count++
+                    if((count % 100) == 0) {
+                        log.info("Number of undervisningsformer this far (${edu}): ${count}")
+                    }
+                }
+            }
+        }
+    }
+
+    @Transactional
+    void updateL3UndervisningsTid(Edu edu) {
+        int count = 0
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/grunddata/undervisningstid", "application/vnd.ladok-utbildningsinformation+json")
+        log.info("Processing (${response?.Undervisningstid?response.Undervisningstid.size():0}) updateLadok3Undervisningstid for edu: ${edu}")
+        if (response && response.Undervisningstid) {
+            response.Undervisningstid.each { Map undervisningstid ->
+                if(!edu || (!undervisningstid?.ID || undervisningstid.ID.isEmpty())) {
+                    throw new Exception("Missing <edu> or <undervisningstid.ID")
+                }
+                if(undervisningstid) {
+                    int ladokId = undervisningstid.ID ? Integer.parseInt(undervisningstid.ID as String) : -1
+                    L3UndervisningsTid l3Undervisningstid = L3UndervisningsTid.findOrCreateByEduAndLadokId(edu,ladokId)
+                    l3Undervisningstid.benamningEn = undervisningstid.Benamning?.en as String
+                    l3Undervisningstid.benamningSv = undervisningstid.Benamning?.sv as String
+                    l3Undervisningstid.beskrivningEn  = undervisningstid.Beskrivning?.en as String
+                    l3Undervisningstid.beskrivningSv = undervisningstid.Beskrivning?.sv as String
+                    l3Undervisningstid.kod = undervisningstid.Kod as String
+                    l3Undervisningstid.larosateId = undervisningstid.LarosateID ? Integer.parseInt(undervisningstid.LarosateID as String) : -1
+                    String slutDatum = undervisningstid.Giltighetsperiod?.Slutdatum as String
+                    if(slutDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                        l3Undervisningstid.slutDatum = sdf.parse(slutDatum)
+                    } else {
+                        l3Undervisningstid.slutDatum = null
+                    }
+                    String startDatum = undervisningstid.Giltighetsperiod?.Startdatum as String
+                    if(startDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                        l3Undervisningstid.startDatum = sdf.parse(startDatum)
+                    } else {
+                        l3Undervisningstid.startDatum = null
+                    }
+
+                    l3Undervisningstid.save(failOnError: true)
+                    count++
+                    if((count % 100) == 0) {
+                        log.info("Number of undervisningstider this far (${edu}): ${count}")
+                    }
+                }
+            }
+        }
+    }
+
 }
