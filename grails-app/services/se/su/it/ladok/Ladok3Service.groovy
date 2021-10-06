@@ -466,4 +466,64 @@ class Ladok3Service {
         }
     }
 
+    @Transactional
+    void updateL3Utbildningstyp(Edu edu) {
+        int count = 0
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/grunddata/utbildningstyp", "application/vnd.ladok-utbildningsinformation+json")
+        log.info("Processing (${response?.Utbildningstyp?response.Utbildningstyp.size():0}) updateLadok3Utbildningstyp for edu: ${edu}")
+        if (response && response.Utbildningstyp) {
+            response.Utbildningstyp.each { Map utbildningstyp ->
+                if(!edu || (!utbildningstyp?.ID || utbildningstyp.ID.isEmpty())) {
+                    throw new Exception("Missing <edu> or <utbildningstyp.ID")
+                }
+                if(utbildningstyp) {
+                    int ladokId = Integer.parseInt(utbildningstyp.ID as String)
+                    L3UtbildningsTyp l3UtbildningsTyp = L3UtbildningsTyp.findOrCreateByEduAndLadokId(edu, ladokId)
+                    l3UtbildningsTyp.avserTillfalle = utbildningstyp.AvserTillfalle ?: false
+                    l3UtbildningsTyp.benamningEn = utbildningstyp.Benamning?.en as String
+                    l3UtbildningsTyp.benamningSv = utbildningstyp.Benamning?.sv as String
+                    l3UtbildningsTyp.beskrivningEn = utbildningstyp.Beskrivning?.en as String
+                    l3UtbildningsTyp.beskrivningSv = utbildningstyp.Beskrivning?.sv as String
+                    l3UtbildningsTyp.forvaldOmfattning = utbildningstyp.Regler?.ForvaldOmfattning ?:-1
+                    l3UtbildningsTyp.grundTyp = utbildningstyp.Grundtyp as String
+                    l3UtbildningsTyp.harOmfattning = utbildningstyp.Regler?.HarOmfattning ?:false
+                    l3UtbildningsTyp.individuell = utbildningstyp.Regler?.Individuell ?:false
+                    l3UtbildningsTyp.kanUtannonseras = utbildningstyp.Regler?.KanUtannonseras ?:false
+                    l3UtbildningsTyp.kod = utbildningstyp.Kod as String
+                    l3UtbildningsTyp.ladokId = utbildningstyp.ID? Integer.parseInt(utbildningstyp.ID as String): -1
+                    l3UtbildningsTyp.larosateId = utbildningstyp.LarosateID?:-1
+                    l3UtbildningsTyp.nivaInomStudieordningId = utbildningstyp.NivaInomStudieordningID? Integer.parseInt(utbildningstyp.NivaInomStudieordningID as String):-1
+                    l3UtbildningsTyp.sjalvstandig = utbildningstyp.Regler?.Sjalvstandig ?:false
+                    l3UtbildningsTyp.sorteringsOrdning = utbildningstyp.Sorteringsordning?:-1
+                    l3UtbildningsTyp.studieOrdningId = utbildningstyp.StudieordningID?:-1
+                    l3UtbildningsTyp.tillatnaUtbildningstyperIStruktur = utbildningstyp.TillatnaUtbildningstyperIStruktur?utbildningstyp.TillatnaUtbildningstyperIStruktur.join(","):null
+                    l3UtbildningsTyp.tillfalleInomUtbildningstyper  = utbildningstyp.TillfalleInomUtbildningstyper?utbildningstyp.TillfalleInomUtbildningstyper.join(","):null
+                    l3UtbildningsTyp.versionsHanteras = utbildningstyp.Regler?.Versionshanteras ?:false
+
+                    String slutDatum = utbildningstyp.Giltighetsperiod?.Slutdatum
+                    if(slutDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                        l3UtbildningsTyp.slutDatum = sdf.parse(slutDatum)
+                    } else {
+                        l3UtbildningsTyp.slutDatum = null
+                    }
+
+                    String startDatum = utbildningstyp.Giltighetsperiod?.Startdatum
+                    if(startDatum) {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                        l3UtbildningsTyp.startDatum = sdf.parse(startDatum)
+                    } else {
+                        l3UtbildningsTyp.startDatum = null
+                    }
+
+                    l3UtbildningsTyp.save(failOnError: true)
+                    count++
+                    if((count % 100) == 0) {
+                        log.info("Number of utbildningstyper this far (${edu}): ${count}")
+                    }
+                }
+            }
+        }
+    }
+
 }
