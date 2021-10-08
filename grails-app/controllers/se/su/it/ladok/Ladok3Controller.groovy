@@ -30,7 +30,6 @@ class Ladok3Controller {
     }
 
     def test() {
-        log.info "test: ${params}"
 //        FeedInitializeJob.triggerNow([:])
         UpdateL3BasicsJob.triggerNow([:])
         return render(text: "Blahonga")

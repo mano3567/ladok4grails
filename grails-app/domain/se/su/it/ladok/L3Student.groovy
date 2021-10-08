@@ -29,4 +29,12 @@ class L3Student {
         senastSparad(nullable: false)
         uid(nullable: false, blank: false, unique: true)
     }
+
+    List<L3StudentAdress> getAddresses() {
+        return L3StudentAdress.findAllByStudentUid(uid, [sort: 'postAdressTyp'])
+    }
+
+    L3StudentKontaktUppgifter getContactInformation() {
+        return L3StudentKontaktUppgifter.findByStudentUid(uid)
+    }
 }

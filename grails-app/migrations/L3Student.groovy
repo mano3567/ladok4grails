@@ -57,7 +57,7 @@ databaseChangeLog = {
                 constraints(nullable: "false")
             }
 
-            column(name: "senast_sparad", type: "DATETIME") {
+            column(name: "senast_sparad", type: "DATE") {
                 constraints(nullable: "false")
             }
 

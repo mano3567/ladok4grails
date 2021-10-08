@@ -93,6 +93,57 @@ class Ladok3Service {
     }
 
     @Transactional
+    void parseL3StudentResponseAndUpdate(Map response, String uid) {
+        L3Student l3Student = L3Student.findOrCreateByUid(uid)
+        l3Student.avliden = response.get('Avliden', false) as boolean
+        l3Student.efterNamn = response.get('Efternamn', null) as String
+        l3Student.externtUid = response.get('ExterntUID', null) as String
+        l3Student.felVidEtableringExternt = response.get('FelVidEtableringExternt', false) as boolean
+        l3Student.fodelseData = response.get('Fodelsedata', null) as String
+        try {
+            String folkbokforingsBevakningTillOchMed = response.get('FolkbokforingsbevakningTillOchMed', null) as String
+            if(folkbokforingsBevakningTillOchMed) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                l3Student.folkbokforingsBevakningTillOchMed = sdf.parse(folkbokforingsBevakningTillOchMed)
+            } else {
+                l3Student.folkbokforingsBevakningTillOchMed = null
+            }
+        } catch(Throwable exception) {
+            l3Student.folkbokforingsBevakningTillOchMed = null
+        }
+        l3Student.forNamn = response.get('Fornamn', null) as String
+        l3Student.konId = response.get('KonID', -1) as int
+        l3Student.personNummer = response.get('Personnummer', null) as String
+        l3Student.senastAndradAv = response.get('SenastAndradAv', null) as String
+        String senastSparad = response.get('SenastSparad', null) as String
+        if(senastSparad) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                l3Student.senastSparad = sdf.parse(senastSparad)
+            } catch(Throwable exception) {
+                l3Student.senastSparad = null
+            }
+        } else {
+            l3Student.senastSparad = null
+        }
+        l3Student.save(failOnError: true)
+    }
+
+    @NotTransactional
+    private Date parseSenastAndrad(String someDateString) {
+        String tmp = someDateString.replace('T', ' ')
+        Date date = null
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            date = sdf.parse(tmp)
+        } catch(java.text.ParseException exception) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss")
+            date = sdf.parse(tmp)
+        }
+        return  date
+    }
+
+    @Transactional
     void updateAtomFeedHistoryFromFeed(Edu edu, int feedId) {
         if(edu && feedId>0) {
             Feed feed = getFeed(edu, feedId)
@@ -286,47 +337,80 @@ class Ladok3Service {
     }
 
     @Transactional
-    L3Student updateL3StudentBySSN(Edu edu, String socialSecurityNumber) {
-        L3Student l3Student = null
+    void updateL3StudentBySSN(Edu edu, String socialSecurityNumber) {
         Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/studentinformation/student/personnummer/${socialSecurityNumber}", "application/vnd.ladok-studentinformation+json")
-        String uid = response?.get('Uid', null)
+        String uid = response?.get('Uid', null) as String
         if(uid) {
-            l3Student = L3Student.findOrCreateByUid(uid)
-            l3Student.avliden = response.get('Avliden', false) as boolean
-            l3Student.efterNamn = response.get('Efternamn', null) as String
-            l3Student.externtUid = response.get('ExterntUID', null) as String
-            l3Student.felVidEtableringExternt = response.get('FelVidEtableringExternt', false) as boolean
-            l3Student.fodelseData = response.get('Fodelsedata', null) as String
+            parseL3StudentResponseAndUpdate(response, uid)
+            updateL3StudentKontaktByUid(edu, uid)
+        }
+    }
+
+    @Transactional
+    void updateL3StudentByUid(Edu edu, String uid) {
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/studentinformation/student/${uid}", "application/vnd.ladok-studentinformation+json")
+        String uuid = response?.get('Uid', null) as String
+        if(uuid) {
+            parseL3StudentResponseAndUpdate(response, uuid)
+            updateL3StudentKontaktByUid(edu, uid)
+        }
+    }
+
+    @Transactional
+    void updateL3StudentKontaktByUid(Edu edu, String l3Uid) {
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/studentinformation/student/${l3Uid}/kontaktuppgifter", "application/vnd.ladok-studentinformation+json")
+        String uid = response.get('Uid', null) as String
+        String studentUid = response.get('StudentUID', null) as String
+        if(uid && studentUid) {
+            L3StudentKontaktUppgifter l3StudentKontaktUppgifter = L3StudentKontaktUppgifter.findOrCreateByStudentUid(studentUid)
+            l3StudentKontaktUppgifter.uid = uid
+            l3StudentKontaktUppgifter.epostAdress = response.get('Epostadress', null) as String
             try {
-                String folkbokforingsBevakningTillOchMed = response.get('FolkbokforingsbevakningTillOchMed', null) as String
-                if(folkbokforingsBevakningTillOchMed) {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
-                    l3Student.folkbokforingsBevakningTillOchMed = sdf.parse(folkbokforingsBevakningTillOchMed)
+                l3StudentKontaktUppgifter.epostAdressSenastAndrad = parseSenastAndrad(response.get('EpostadressSenastAndrad', null) as String)
+            } catch(Throwable exception) {
+                l3StudentKontaktUppgifter.epostAdressSenastAndrad = null
+            }
+            l3StudentKontaktUppgifter.senastAndradAv = response.get('SenastAndradAv', null) as String
+            try {
+                l3StudentKontaktUppgifter.senastSparad = parseSenastAndrad(response.get('SenastSparad', null) as String)
+            } catch(Throwable exception) {
+                l3StudentKontaktUppgifter.senastSparad = null
+            }
+            l3StudentKontaktUppgifter.telefonNummer = response.get('Telefonnummer', null) as String
+            try {
+                l3StudentKontaktUppgifter.telefonNummerSenastAndrad = parseSenastAndrad(response.get('TelefonnummerSenastAndrad', null) as String)
+            } catch(Throwable exception) {
+                l3StudentKontaktUppgifter.telefonNummerSenastAndrad = null
+            }
+            l3StudentKontaktUppgifter.save(failOnError: true)
+        }
+        response.Postadresser.each { Map l3add ->
+            String postAdressTyp = l3add.get('PostadressTyp', null) as String
+            L3StudentAdress l3StudentAdress = L3StudentAdress.findOrCreateByStudentUidAndPostAdressTyp(l3Uid, postAdressTyp)
+            l3StudentAdress.careOf = (l3add.get('CareOf', null) as String)?.trim()
+            l3StudentAdress.land = (l3add.get('Land', null) as String)?.trim()
+            l3StudentAdress.postNummer = (l3add.get('Postnummer', null) as String)?.trim()
+            l3StudentAdress.postOrt = (l3add.get('Postort', null) as String)?.trim()
+            try {
+                String senastAndrad = l3add.get('SenastAndrad', '') as String
+                if(senastAndrad) {
+                    senastAndrad = senastAndrad.replace('T', ' ')
+                    try {
+                        SimpleDateFormat sdb = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                        l3StudentAdress.senastAndrad = sdb.parse(senastAndrad)
+                    } catch(java.text.ParseException exception) {
+                        SimpleDateFormat sdb = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sss")
+                        l3StudentAdress.senastAndrad = sdb.parse(senastAndrad)
+                    }
                 } else {
-                    l3Student.folkbokforingsBevakningTillOchMed = null
+                    l3StudentAdress.senastAndrad = null
                 }
             } catch(Throwable exception) {
-                l3Student.folkbokforingsBevakningTillOchMed = null
+                l3StudentAdress.senastAndrad = null
             }
-            l3Student.forNamn = response.get('Fornamn', null) as String
-            l3Student.konId = response.get('KonID', -1) as int
-            l3Student.personNummer = response.get('Personnummer', null) as String
-            l3Student.senastAndradAv = response.get('SenastAndradAv', null) as String
-            String senastSparad = response.get('SenastSparad', null) as String
-            if(senastSparad) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
-                    l3Student.senastSparad = sdf.parse(senastSparad)
-                } catch(Throwable exception) {
-                    l3Student.senastSparad = null
-                }
-            } else {
-                l3Student.senastSparad = null
-            }
-            l3Student.save(failOnError: true)
-            l3Student = L3Student.findByUid(uid)
+            l3StudentAdress.utdelningsAdress = (l3add.get('Utdelningsadress', null) as String)?.trim()
+            l3StudentAdress.save(failOnError: true)
         }
-        return l3Student
     }
 
     @Transactional
@@ -569,5 +653,4 @@ class Ladok3Service {
             }
         }
     }
-
 }
