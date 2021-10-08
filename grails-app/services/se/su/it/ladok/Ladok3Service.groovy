@@ -286,6 +286,50 @@ class Ladok3Service {
     }
 
     @Transactional
+    L3Student updateL3StudentBySSN(Edu edu, String socialSecurityNumber) {
+        L3Student l3Student = null
+        Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/studentinformation/student/personnummer/${socialSecurityNumber}", "application/vnd.ladok-studentinformation+json")
+        String uid = response?.get('Uid', null)
+        if(uid) {
+            l3Student = L3Student.findOrCreateByUid(uid)
+            l3Student.avliden = response.get('Avliden', false) as boolean
+            l3Student.efterNamn = response.get('Efternamn', null) as String
+            l3Student.externtUid = response.get('ExterntUID', null) as String
+            l3Student.felVidEtableringExternt = response.get('FelVidEtableringExternt', false) as boolean
+            l3Student.fodelseData = response.get('Fodelsedata', null) as String
+            try {
+                String folkbokforingsBevakningTillOchMed = response.get('FolkbokforingsbevakningTillOchMed', null) as String
+                if(folkbokforingsBevakningTillOchMed) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                    l3Student.folkbokforingsBevakningTillOchMed = sdf.parse(folkbokforingsBevakningTillOchMed)
+                } else {
+                    l3Student.folkbokforingsBevakningTillOchMed = null
+                }
+            } catch(Throwable exception) {
+                l3Student.folkbokforingsBevakningTillOchMed = null
+            }
+            l3Student.forNamn = response.get('Fornamn', null) as String
+            l3Student.konId = response.get('KonID', -1) as int
+            l3Student.personNummer = response.get('Personnummer', null) as String
+            l3Student.senastAndradAv = response.get('SenastAndradAv', null) as String
+            String senastSparad = response.get('SenastSparad', null) as String
+            if(senastSparad) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
+                    l3Student.senastSparad = sdf.parse(senastSparad)
+                } catch(Throwable exception) {
+                    l3Student.senastSparad = null
+                }
+            } else {
+                l3Student.senastSparad = null
+            }
+            l3Student.save(failOnError: true)
+            l3Student = L3Student.findByUid(uid)
+        }
+        return l3Student
+    }
+
+    @Transactional
     void updateL3StudieLokalisering(Edu edu) {
         int count = 0
         Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/grunddata/studielokalisering", "application/vnd.ladok-utbildningsinformation+json")
