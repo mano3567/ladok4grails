@@ -1,5 +1,6 @@
 package se.su.it.ladok
 
+import groovy.sql.Sql
 import org.json.XML
 import grails.gorm.transactions.NotTransactional
 import grails.gorm.transactions.Transactional
@@ -9,14 +10,83 @@ import org.apache.abdera.model.Entry
 import org.apache.abdera.model.Feed
 import org.apache.abdera.parser.Parser
 
+import javax.sql.DataSource
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.text.SimpleDateFormat
 
 @Transactional
 class Ladok3Service {
+    DataSource dataSource
     HttpClientService httpClientService
     SettingsService settingsService
+
+    @Transactional(readOnly = true)
+    List<L3Utbildning> findEducations(Edu edu, int educationType, int latestVersion, String search) {
+        List<L3Utbildning> educations = []
+        Sql sql = null
+        try {
+            sql = Sql.newInstance(dataSource)
+            List queryParams = []
+            String sqlSelect = "select id from l3utbildning"
+            if(edu) {
+                queryParams << edu.toString()
+                sqlSelect += " where edu=?"
+            }
+            if(educationType>1 && educationType < 6) {
+                if(queryParams.size()>0) {
+                    sqlSelect += " and"
+                } else {
+                    sqlSelect += " where"
+                }
+                sqlSelect += " class=?"
+                if(2==educationType) {
+                    queryParams << "se.su.it.ladok.L3Program"
+                } else if(3==educationType) {
+                    queryParams << "se.su.it.ladok.L3ProgramInriktning"
+                } else if(4==educationType) {
+                    queryParams << "se.su.it.ladok.L3Kurs"
+                } else if(5==educationType) {
+                    queryParams << "se.su.it.ladok.L3KursPaketering"
+                }
+            }
+            if(latestVersion>0 && latestVersion<3) {
+                if(queryParams.size()>0) {
+                    sqlSelect += " and"
+                } else {
+                    sqlSelect += " where"
+                }
+                sqlSelect += " senaste_version=?"
+                queryParams << (1==latestVersion)
+            }
+            if(search?.trim()) {
+                if(queryParams.size()>0) {
+                    sqlSelect += " and"
+                } else {
+                    sqlSelect += " where"
+                }
+                sqlSelect += " (utbildnings_kod like '${search}%' or benamning_sv like '%${search}%')"
+            }
+            sqlSelect += " order by utbildnings_kod, edu;"
+            sql.rows(sqlSelect, queryParams).each { row ->
+                L3Utbildning education = L3Utbildning.get(row.id as long)
+                if(education && !educations.contains(education)) {
+                    educations << education
+                }
+            }
+        } catch(Throwable exception) {
+            log.info "Problem in findEducations(Edu, int, int, String): ${exception.getMessage()}"
+        } finally {
+            if(sql) {
+                try {
+                    sql.close()
+                } catch(Throwable exception) {
+                }
+                sql = null
+            }
+        }
+        return educations
+    }
 
     @NotTransactional
     Date getExpirationDateForCert(String certPath, String certPassWord) {

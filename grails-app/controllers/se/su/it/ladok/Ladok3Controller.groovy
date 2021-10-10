@@ -1,7 +1,7 @@
 package se.su.it.ladok
 
 class Ladok3Controller {
-    final static String defaultAction = "list"
+    final static String defaultAction = "index"
 
     Ladok3Service ladok3Service
     SettingsService settingsService
@@ -58,15 +58,38 @@ class Ladok3Controller {
         [items: L3UndervisningsTid.findAll([sort: ['edu': 'asc', 'kod': 'asc']])]
     }
 
+    def listUtbildning() {
+        Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
+        List<Edu> edus = Edu.values().sort {it.fullName}
+        List<L3Utbildning> educations = []
+        int educationType = params.int('educationType') ?: 1
+        List<Map> educationTypes = [ [id: 1, name: 'Oavsett'], [id: 2, name: 'Program'], [id: 3, name: 'Inriktning'], [id: 4, name: 'Kurs'], [id: 5, name: 'Kurspaketering'] ]
+        int latestVersion = params.int('latestVersion') ?: 1
+        List<Map> latestVersions = [ [id: 1, name: 'Ja'], [id: 2, name: 'Nej'], [id: 3, name: 'Oavsett'] ]
+        String searchFor = params.searchFor?.trim() as String
+        if(params.find) {
+            educations = ladok3Service.findEducations(edu, educationType, latestVersion, searchFor)
+        }
+        [edu: edu, educations: educations, educationType: educationType, educationTypes: educationTypes, edus: edus, latestVersion: latestVersion, latestVersions: latestVersions, searchFor: searchFor]
+    }
+
     def listUtbildningsTyp() {
         [items: L3UtbildningsTyp.findAll([sort: ['edu': 'asc', 'kod': 'asc']])]
     }
 
+    def showUtbildning() {
+        L3Utbildning education = params.long('id') ? L3Utbildning.get(params.long('id')) : null
+        if(!education) {
+            log.info "Missing education"
+        }
+        [education: education]
+    }
+
     def test() {
 //        FeedInitializeJob.triggerNow([:])
-        UpdateL3BasicsJob.triggerNow([:])
-//        UpdateL3Program4EduJob.triggerNow([edu: Edu.LU.name])
-//        UpdateL3Kurs4EduJob.triggerNow(edu: Edu.SH.name)
+//        UpdateL3BasicsJob.triggerNow([:])
+//        UpdateL3Program4EduJob.triggerNow([edu: Edu.SU.name])
+        UpdateL3Kurs4EduJob.triggerNow(edu: Edu.KF.name)
         return render(text: "Blahonga")
     }
 }

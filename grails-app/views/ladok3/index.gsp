@@ -69,7 +69,12 @@
         </div>
         <div class="row mb-1">
             <div class="col-lg-12">
-                <g:link action="listUtbildningsTyp">UndervisningsTyp</g:link>
+                <g:link action="listUtbildningsTyp">UtbildningsTyp</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
+                <g:link action="listUtbildning">Utbildningar</g:link>
             </div>
         </div>
     </body>

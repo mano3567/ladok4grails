@@ -13,7 +13,7 @@ class L3Utbildning {
     Date lastUpdated
     double omfattningsVarde = 0.0
     String organisationUid
-    String  overliggandeUtbildningUid
+    String overliggandeUtbildningUid
     int processStatusId = -1
     boolean senasteVersion = false
     int studieOrdningId = -1
@@ -40,4 +40,15 @@ class L3Utbildning {
         utbildningUid(nullable: false, blank: false)
     }
 
+    L3Period getGiltigFranPeriod() {
+        return L3Period.findByEduAndLadokId(edu, giltigFranPeriodId)
+    }
+
+    L3Organisation getOrganisation() {
+        return L3Organisation.findByEduAndUid(edu, organisationUid)
+    }
+
+    L3UtbildningsTyp getUtbildningsTyp() {
+        return utbildningsTypId>0 ? L3UtbildningsTyp.findByLadokIdAndEdu(utbildningsTypId, edu) : null
+    }
 }
