@@ -4,28 +4,34 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 enum Edu {
+    DOCH('uniarts.se', 'Stockholms konstnärliga högskola', 'uniarts.se',"student.uniarts.se", "SKH"),
+    GIH('gih.se', 'Gymnastik- och idrottshögskolan', 'gih.se', "gih.se", "GIH"),
+    HH('hh.se', 'Högskolan i Halmstad', 'hh.se', "hh.se", "HH"),
+    KF('konstfack.se', 'Konstfack', 'konstfack.se', "student.konstfack.se", "KF"),
+    KMH('kmh.se', 'Kungliga Musikhögskolan', 'kmh.se', "kmh.se", "KMH"),
+    KTH('kth.se', 'Kungliga Tekniska högskolan', 'kth.se', "kth.se", "KTH"),
     LU('lu.se', 'Lunds universitet', 'lu.se', "lu.se", "LU"),
     MAU('mau.se', 'Malmö universitet', 'mah.se', "mah.se", "MAU"),
     SH('suni.se', 'Södertörns högskola', 'suni.se', "suni.se", "SH"),
-    SU('su.se', 'Stockholms universitet', 'su.se',  "su.se", "SU"),
+    SU('su.se', 'Stockholms universitet', 'su.se',  "su.se", "SU")
 
-    private final String abbreviation
-    private final String fullName
-    private final String name
-    private final String scope
-    private final String studentScope
+    private final String itsAbbreviation
+    private final String itsFullName
+    private final String itsName
+    private final String itsScope
+    private final String itsStudentScope
 
-    Edu(String name,  String fullName, String scope, String studentScope, String abbreviation) {
-        this.name = name
-        this.fullName = fullName
-        this.scope = scope
-        this.studentScope = studentScope
-        this.abbreviation = abbreviation
+    Edu(String theName, String theFullName, String theScope, String theStudentScope, String theAbbreviation) {
+        itsAbbreviation = theAbbreviation
+        itsFullName = theFullName
+        itsName = theName
+        itsScope = theScope
+        itsStudentScope = theStudentScope
     }
 
     static Edu findByName(String name) {
         for (e in Edu.values()) {
-          if (name == e.name) {
+          if (name == e.itsName) {
             return e
           }
         }
@@ -33,23 +39,23 @@ enum Edu {
     }
 
     String getAbbreviation() {
-        return abbreviation
+        return itsAbbreviation
     }
 
     String getFullName() {
-        return fullName
+        return itsFullName
     }
 
     String getName() {
-        return name
+        return itsName
     }
 
     String getScope() {
-        return scope
+        return itsScope
     }
 
     String getStudentScope() {
-        return studentScope
+        return itsStudentScope
     }
 }
 

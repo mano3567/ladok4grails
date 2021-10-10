@@ -121,6 +121,24 @@ environments:
         dataSource:
             jndiName: "java:comp/env/jdbc/ladok"
 ladok3Settings:
+    doch:
+        certPath: ''
+        certPassWord: ''
+    gih:
+        certPath: ''
+        certPassWord: ''
+    hh:
+        certPath: ''
+        certPassWord: ''
+    kf:
+        certPath: ''
+        certPassWord: ''
+    kmh:
+        certPath: ''
+        certPassWord: ''
+    kth:
+        certPath: ''
+        certPassWord: ''
     lu:
         certPath: ''
         certPassWord: ''

@@ -595,7 +595,89 @@ class Ladok3Service {
     }
 
     @Transactional
-    void updateL3Utbildningstyp(Edu edu) {
+    void updateL3UtbildningByEduAndType(Edu edu, String utbildningsTypKod) {
+        if(edu && utbildningsTypKod) {
+            L3UtbildningsTyp utbildningsTyp = L3UtbildningsTyp.findByEduAndKod(edu, utbildningsTypKod)
+            if(utbildningsTyp) {
+                Map query = [ utbildningstypID: utbildningsTyp.ladokId, page: 1, limit: 1, onlyCount: true]
+                Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu,"/utbildningsinformation/utbildningsinstans/filtrera", "application/vnd.ladok-utbildningsinformation+json", query)
+                if (response && response.TotaltAntalPoster && response.TotaltAntalPoster > 0) {
+                    log.info "Found ${response.TotaltAntalPoster} educations for ${edu} and ${utbildningsTypKod}"
+                    int rowCount = response.TotaltAntalPoster as int
+                    int count = 0
+                    for (int i = 400; i < rowCount + 401; i += 400) {
+                        try {
+                            Thread.sleep(1000L)
+                        } catch(Throwable e) {
+                        }
+                        query = [utbildningstypID: utbildningsTyp.ladokId, page: i / 400, limit: 400]
+                        response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/utbildningsinstans/filtrera", "application/vnd.ladok-utbildningsinformation+json", query)
+                        if (response?.Resultat) {
+                            response.Resultat.each { Map utbildningsMap ->
+                                String uid = utbildningsMap.Uid?.trim() as String
+                                String utbildningsKod = utbildningsMap?.Utbildningskod?.trim() as String
+                                if(uid && utbildningsKod) {
+                                    String overliggandeUtbildningUid = null
+                                    L3Utbildning utbildning = null
+                                    if(L3Program.UTBILDNINGSTYPER.contains(utbildningsTypKod)) {
+                                        utbildning = L3Program.findOrCreateByEduAndUid(edu, uid)
+                                    } else if(L3ProgramInriktning.UTBILDNINGSTYPER.contains(utbildningsTypKod)) {
+                                        utbildning = L3ProgramInriktning.findOrCreateByEduAndUid(edu, uid)
+                                        try {
+                                            Thread.sleep(500L)
+                                            Map response2 = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/utbildningsinstans/${uid}", "application/vnd.ladok-utbildningsinformation+json", null)
+                                            overliggandeUtbildningUid = response2.OverliggandeUtbildningUID?.trim() as String
+                                        } catch(Throwable exception) {
+                                        }
+                                    } else if(L3KursPaketering.UTBILDNINGSTYPER.contains(utbildningsTypKod)) {
+                                        utbildning = L3KursPaketering.findOrCreateByEduAndUid(edu, uid)
+                                    } else if(L3Kurs.UTBILDNINGSTYPER.contains(utbildningsTypKod)) {
+                                        utbildning = L3Kurs.findOrCreateByEduAndUid(edu, uid)
+                                    } else {
+                                        log.info "Unknown type: ${utbildningsTypKod} for ${edu}"
+                                    }
+                                    if(utbildning) {
+                                        utbildning.avvecklad = utbildningsMap.Avvecklad ?: false
+                                        utbildning.benamning = utbildningsMap.Benamning ?: null
+                                        utbildning.benamningEn = utbildningsMap.Benamningar?.en ?: null
+                                        utbildning.benamningSv = utbildningsMap.Benamningar?.sv ?: null
+                                        utbildning.enhetId = utbildningsMap.EnhetID ?: -1
+                                        utbildning.giltigFranPeriodId = utbildningsMap.GiltigFranPeriodID ?: -1
+                                        utbildning.harInnehall = utbildningsMap.HarInnehall ?: false
+                                        utbildning.omfattningsVarde = utbildningsMap.Omfattningsvarde ? Double.parseDouble(utbildningsMap.Omfattningsvarde as String) : 0.0
+                                        utbildning.organisationUid = utbildningsMap.OrganisationUID ?: null
+                                        utbildning.overliggandeUtbildningUid = overliggandeUtbildningUid
+                                        utbildning.processStatusId = utbildningsMap.ProcessStatusID ?: 0
+                                        utbildning.senasteVersion = utbildningsMap.SenasteVersion ?: false
+                                        utbildning.studieOrdningId = utbildningsMap.StudieordningID ?: -1
+                                        utbildning.utbildningUid = utbildningsMap.UtbildningUID ?: null
+                                        utbildning.utbildningsFormId = utbildningsMap.UtbildningsformID ?: -1
+                                        utbildning.utbildningsKod = utbildningsMap.Utbildningskod
+                                        utbildning.utbildningsMallUid = utbildningsMap.UtbildningsmallUID ?: null
+                                        utbildning.utbildningsTypId = utbildningsMap.UtbildningstypID ?: -1
+                                        utbildning.versionsNummer = utbildningsMap.Versionsnummer ?: -1
+
+                                        utbildning.save(failOnError: true)
+                                        count++
+                                        if(0 == count % 100) {
+                                            log.info "Processed ${count} / ${rowCount} educations for ${edu} and ${utbildningsTypKod}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    log.info "Didnt find any educations for ${edu} and ${utbildningsTypKod}"
+                }
+            } else {
+                log.info "Cant find L3UtbildningsTyp for ${edu} and ${utbildningsTypKod}"
+            }
+        }
+    }
+
+    @Transactional
+    void updateL3UtbildningsTyp(Edu edu) {
         int count = 0
         Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/grunddata/utbildningstyp", "application/vnd.ladok-utbildningsinformation+json")
         log.info("Processing (${response?.Utbildningstyp?response.Utbildningstyp.size():0}) updateLadok3Utbildningstyp for edu: ${edu}")
