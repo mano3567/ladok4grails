@@ -40,6 +40,15 @@ class L3Utbildning {
         utbildningUid(nullable: false, blank: false)
     }
 
+    List<L3Utbildning> getChildren() {
+        return L3Utbildning.findAllByOverliggandeUtbildningUid(utbildningUid, [sort: 'utbildningsKod'])
+    }
+
+    L3Utbildning getOverliggandeUtbildning() {
+        L3Utbildning utbildning = overliggandeUtbildningUid ? L3Utbildning.findByEduAndUtbildningUid(edu, overliggandeUtbildningUid) : null
+        return utbildning
+    }
+
     L3Period getGiltigFranPeriod() {
         return L3Period.findByEduAndLadokId(edu, giltigFranPeriodId)
     }

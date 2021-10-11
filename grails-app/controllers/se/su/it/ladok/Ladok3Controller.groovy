@@ -82,7 +82,8 @@ class Ladok3Controller {
         if(!education) {
             log.info "Missing education"
         }
-        [education: education]
+        List<L3Utbildning> otherVersions = L3Utbildning.findAllByEduAndUtbildningsKodAndIdNotEqual(education.edu, education.utbildningsKod, education.id, [sort: 'versionsNummer', order: 'desc'])
+        [education: education, otherVersions: otherVersions]
     }
 
     def test() {

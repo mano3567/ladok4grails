@@ -13,7 +13,9 @@
         </div>
         <div class="row mb-1">
             <div class="col-lg-2"><strong>Utbildningskod:</strong></div>
-            <div class="col-lg-10">${education.utbildningsKod}</div>
+            <div class="col-lg-10">
+                <g:if test="${education.getOverliggandeUtbildning()}">${education.getOverliggandeUtbildning().utbildningsKod} / </g:if>${education.utbildningsKod}
+            </div>
         </div>
         <div class="row mb-1">
             <div class="col-lg-2"><strong>Benämning:</strong></div>
@@ -25,6 +27,12 @@
                 <div class="col-lg-10">${education.benamningEn}</div>
             </div>
         </g:if>
+        <g:if test="${education.getOverliggandeUtbildning()}">
+            <div class="row mb-1">
+                <div class="col-lg-2"><strong>Överliggande utbildning:</strong></div>
+                <div class="col-lg-10"><g:link action="showUtbildning" id="${education.getOverliggandeUtbildning().id}">${education.getOverliggandeUtbildning().utbildningsKod} (${education.getOverliggandeUtbildning().edu}): ${education.getOverliggandeUtbildning().benamningSv}</g:link></div>
+            </div>
+        </g:if>
         <div class="row mb-1">
             <div class="col-lg-2"><strong>Omfattning:</strong></div>
             <div class="col-lg-10">${education.omfattningsVarde}</div>
@@ -32,6 +40,22 @@
         <div class="row mb-1">
             <div class="col-lg-2"><strong>Avvecklad:</strong></div>
             <div class="col-lg-10"><g:formatBoolean boolean="${education.avvecklad}" true="Ja" false="Nej"/></div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-2"><strong>EnhetsId:</strong></div>
+            <div class="col-lg-10">${education.enhetId}</div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-2"><strong>ProcessStatusId:</strong></div>
+            <div class="col-lg-10">${education.processStatusId}</div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-2"><strong>StudieOrdningId:</strong></div>
+            <div class="col-lg-10">${education.studieOrdningId}</div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-2"><strong>UtbildningsFormId:</strong></div>
+            <div class="col-lg-10">${education.utbildningsFormId}</div>
         </div>
         <div class="row mb-1">
             <div class="col-lg-2"><strong>Har innehåll:</strong></div>
@@ -66,6 +90,48 @@
                 <div class="col-lg-2"><strong>Organisation:</strong></div>
                 <div class="col-lg-10">${education.getOrganisation().benamningSv}</div>
             </div>
+        </g:if>
+        <div class="row mb-1">
+            <div class="col-lg-2"><strong>Andra versioner:</strong></div>
+            <div class="col-lg-10">${otherVersions.size()} st</div>
+        </div>
+        <g:if test="${otherVersions}">
+            <hr class="mb-1"/>
+            <div class="row mb-1">
+                <div class="col-lg-2"><strong>Version</strong></div>
+                <div class="col-lg-2"><strong>Giltig från</strong></div>
+                <div class="col-lg-2"><strong>Senaste version</strong></div>
+            </div>
+            <hr class="mb-1"/>
+            <g:each in="${otherVersions}" var="otherVersion">
+                <div class="row mb-1">
+                    <div class="col-lg-2"><g:link action="showUtbildning" id="${otherVersion.id}">${otherVersion.versionsNummer}</g:link></div>
+                    <div class="col-lg-2"><g:link action="showUtbildning" id="${otherVersion.id}">${otherVersion.getGiltigFranPeriod().kod}</g:link></div>
+                    <div class="col-lg-2"><g:formatBoolean boolean="${otherVersion.senasteVersion}" true="Ja" false="Nej"/></div>
+                </div>
+                <hr class="mb-1"/>
+            </g:each>
+        </g:if>
+        <g:if test="${education.getChildren()}">
+            <hr/>
+            <div class="row mb-1">
+                <div class="col-lg-12"><strong>${education.getChildren().size()} inriktningar</strong></div>
+            </div>
+            <hr class="mb-1"/>
+            <div class="row mb-1">
+                <div class="col-lg-2"><strong>Kod</strong></div>
+                <div class="col-lg-2"><strong>Giltig från</strong></div>
+                <div class="col-lg-8"><strong>Benämning</strong></div>
+            </div>
+            <hr class="mb-1"/>
+            <g:each in="${education.getChildren()}" var="child">
+                <div class="row mb-1">
+                    <div class="col-lg-2"><g:link action="showUtbildning" id="${child.id}">${child.utbildningsKod}</g:link></div>
+                    <div class="col-lg-2"><g:link action="showUtbildning" id="${child.id}">${child.getGiltigFranPeriod().kod}</g:link></div>
+                    <div class="col-lg-8">${child.benamningSv}</div>
+                </div>
+                <hr class="mb-1"/>
+            </g:each>
         </g:if>
     </body>
 </html>
