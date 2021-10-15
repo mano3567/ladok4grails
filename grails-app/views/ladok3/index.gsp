@@ -77,5 +77,29 @@
                 <g:link action="listUtbildning">Utbildningar</g:link>
             </div>
         </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
+                <g:link action="triggerFeedInitializeJob">Trigga FeedInitializeJob</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
+                <g:link action="triggerUpdateL3BasicsJob">Trigga UpdateL3BasicsJob</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
+                <g:link action="triggerUpdateL3Program4EduJob">Trigga UpdateL3Program4EduJob</g:link>
+            </div>
+        </div>
+        <hr/>
+        <g:each in="${stats}" var="statistics">
+            <div class="row mb-1">
+                <div class="col-lg-6">${statistics.clazz}</div>
+                <div class="col-lg-3">${statistics.edu}</div>
+                <div class="col-lg-3">${statistics.count} st</div>
+            </div>
+            <hr class="mb-1"/>
+        </g:each>
     </body>
 </html>

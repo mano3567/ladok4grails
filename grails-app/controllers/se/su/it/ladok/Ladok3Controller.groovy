@@ -23,7 +23,8 @@ class Ladok3Controller {
             }
             isEnabled.put(edu, settingsService.isLadok3EnabledForEdu(edu))
         }
-        [edus: edus, expirationDates: expirationDates, isDefined: isDefined, isEnabled: isEnabled]
+        List<Expando> stats = ladok3Service.getUtbildningsStats()
+        [edus: edus, expirationDates: expirationDates, isDefined: isDefined, isEnabled: isEnabled, stats: stats]
     }
 
     def listBevisBenamning() {
@@ -87,10 +88,40 @@ class Ladok3Controller {
     }
 
     def test() {
-//        FeedInitializeJob.triggerNow([:])
-//        UpdateL3BasicsJob.triggerNow([:])
-//        UpdateL3Program4EduJob.triggerNow([edu: Edu.SU.name])
-        UpdateL3Kurs4EduJob.triggerNow(edu: Edu.KF.name)
+//        UpdateL3Kurs4EduJob.triggerNow([edu: Edu.SU.name])
+        /*
+        L3Utbildning.findAllByEduAndSenasteVersionAndAvvecklad(Edu.HH, true, false,  [max: 1000]).each { L3Utbildning education ->
+            try {
+                ladok3Service.updateL3UtbildningsEventByEduAndUid(education.edu, education.uid, education.getUtbildningsTyp().kod)
+            } catch(Throwable exception) {
+            }
+        }
+         */
+
         return render(text: "Blahonga")
+    }
+
+    def triggerFeedInitializeJob() {
+        FeedInitializeJob.triggerNow([:])
+        return redirect(action: 'index')
+    }
+
+    def triggerUpdateL3BasicsJob() {
+        UpdateL3BasicsJob.triggerNow([:])
+        return redirect(action: 'index')
+    }
+
+    def triggerUpdateL3Program4EduJob() {
+        Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
+        List<Edu> edus = []
+        Edu.values().sort {it.fullName}.each {Edu e ->
+            if(settingsService.isLadok3EnabledForEdu(e) && settingsService.getPathForCertByEdu(e) && settingsService.getPassWordForCertByEdu(e)) {
+                edus << e
+            }
+        }
+        if(params.trigger && edu) {
+            UpdateL3Program4EduJob.triggerNow([edu: edu.name])
+        }
+        [edu: edu, edus: edus]
     }
 }

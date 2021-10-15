@@ -162,6 +162,29 @@ class Ladok3Service {
         return new LatestFeedMeta(id, updated, eventUid)
     }
 
+    @Transactional(readOnly = true)
+    List<Expando> getUtbildningsStats() {
+        List<Expando> stats = []
+        Sql sql = null
+        try {
+            sql = Sql.newInstance(dataSource)
+            sql.rows("select count(*) as cnt, class as clazz, edu from l3utbildning group by class, edu order by class, edu;").each { row ->
+                stats << Expando.newInstance(count: row.cnt as int, clazz: row.clazz as String, edu: row.edu as String)
+            }
+        } catch(Throwable exception) {
+            log.info "Problem in getUtbildningsStats(): ${exception.getMessage()}"
+        } finally {
+            if(sql) {
+                try {
+                    sql.close()
+                } catch(Throwable exception) {
+                }
+                sql = null
+            }
+        }
+        return stats
+    }
+
     @Transactional
     void parseL3StudentResponseAndUpdate(Map response, String uid) {
         L3Student l3Student = L3Student.findOrCreateByUid(uid)
@@ -742,6 +765,72 @@ class Ladok3Service {
                 }
             } else {
                 log.info "Cant find L3UtbildningsTyp for ${edu} and ${utbildningsTypKod}"
+            }
+        }
+    }
+
+    @Transactional
+    void updateL3UtbildningsEventByEduAndUid(Edu edu, String uid, String utbildningsTyp) {
+        if(edu && uid && utbildningsTyp) {
+            SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+            final Date minimumDateForPeriod = sdf.parse('2012-01-01')
+            Map response = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/utbildningstillfalle/lista/${uid}", "application/vnd.ladok-utbildningsinformation+json")
+            if(response?.Utbildningstillfalle) {
+                response.Utbildningstillfalle.each { Map event ->
+                    String eventUid = event.get('Uid', null)
+                    if(eventUid) {
+                        int startPeriodId = event.get('StartperiodID', ['value', -1]).get('value', -1) as int
+                        L3Period period = L3Period.findByEduAndLadokId(edu, startPeriodId)
+                        if(period && period.fromDatum>=minimumDateForPeriod) {
+                            L3UtbildningsTillfalle educationEvent = null
+                            if(L3Program.UTBILDNINGSTYPER.contains(utbildningsTyp)) {
+                                educationEvent = L3ProgramTillfalle.findOrCreateByEduAndUid(edu, eventUid)
+                            } else if(L3ProgramInriktning.UTBILDNINGSTYPER.contains(utbildningsTyp)) {
+                                educationEvent = L3ProgramInriktningTillfalle.findOrCreateByEduAndUid(edu, eventUid)
+                            } else if(L3Kurs.UTBILDNINGSTYPER.contains(utbildningsTyp)) {
+                                educationEvent = L3KursTillfalle.findOrCreateByEduAndUid(edu, eventUid)
+                            } else if(L3KursPaketering.UTBILDNINGSTYPER.contains(utbildningsTyp)) {
+                                educationEvent = L3KursPaketeringTillfalle.findOrCreateByEduAndUid(edu, eventUid)
+                            }
+                            if(educationEvent) {
+                                educationEvent.installt = event.get('Installt', false) as boolean
+                                educationEvent.organisationUid = event.get('OrganisationUID', null) as String
+                                educationEvent.startPeriodId = startPeriodId
+                                educationEvent.status = event.get('Status', -1) as int
+                                educationEvent.studieLokaliseringId = event.get('StudielokaliseringID', [value: -1]).get('value', -1) as int
+                                educationEvent.studieTaktId = event.get('StudietaktID', [value: -1]).get('value', -1) as int
+                                educationEvent.undervisningsFormId = event.get('UndervisningsformID', [value: -1]).get('value', -1) as int
+                                educationEvent.utannonserat = event.get('Utannonserat', false) as boolean
+                                educationEvent.utbildningsInstansUid = event.get('UtbildningsinstansUID', null) as String
+                                educationEvent.utbildningsMallUid = event.get('UtbildningsmallUID', null) as String
+                                educationEvent.utbildningsTillfallesKod = event.get('Tillfalleskod', null) as String
+                                educationEvent.utbildningsTypId = event.get('UtbildningstypID', -1) as int
+                                event.Tillfallesperioder.each { Map tillfallesperiod ->
+                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+                                    Date first = tillfallesperiod.ForstaUndervisningsdatum ? simpleDateFormat.parse(tillfallesperiod.ForstaUndervisningsdatum as String) : null
+                                    if(educationEvent.startDatum) {
+                                        if(educationEvent.startDatum > first) {
+                                            educationEvent.startDatum = first
+                                        }
+                                    } else {
+                                        educationEvent.startDatum = first
+                                    }
+                                    double credits = tillfallesperiod.Omfattningsvarde ? Double.parseDouble(tillfallesperiod.Omfattningsvarde as String) : 0.0
+                                    educationEvent.omfattningsVarde += credits
+                                    Date last = tillfallesperiod.SistaUndervisningsdatum ? simpleDateFormat.parse(tillfallesperiod.SistaUndervisningsdatum as String) : null
+                                    if(educationEvent.slutDatum) {
+                                        if(educationEvent.slutDatum < last) {
+                                            educationEvent.slutDatum = last
+                                        }
+                                    } else {
+                                        educationEvent.slutDatum = last
+                                    }
+                                }
+                                educationEvent.save(failOnError: true)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
