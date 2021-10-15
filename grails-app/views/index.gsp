@@ -22,7 +22,7 @@
             </div>
             <div class="row mb-1">
                 <div class="col-lg-2">App profile:</div>
-                <div class="col-lg-10">${grailsApplication.config.grails?.profile}</div>
+                <div class="col-lg-10">${grailsApplication.config.getProperty('grails.profile')}</div>
             </div>
             <div class="row mb-1">
                 <div class="col-lg-2">App version:</div>

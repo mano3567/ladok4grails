@@ -15,6 +15,7 @@ class SettingsService {
             ConfigValue configValue = ConfigValue.findByName("ladok3.eventuid,for.${edu.toString()}")
             uid = configValue?.value
         }
+        return  uid
     }
 
     @Transactional(readOnly = true)
