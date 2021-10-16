@@ -89,6 +89,16 @@
         </div>
         <div class="row mb-1">
             <div class="col-lg-12">
+                <g:link action="triggerUpdateL3Events4EduJob">Trigga UpdateL3Events4EduJob</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
+                <g:link action="triggerUpdateL3Kurs4EduJob">Trigga UpdateL3Kurs4EduJob</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
                 <g:link action="triggerUpdateL3Program4EduJob">Trigga UpdateL3Program4EduJob</g:link>
             </div>
         </div>

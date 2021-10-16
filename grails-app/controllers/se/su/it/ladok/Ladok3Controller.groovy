@@ -111,6 +111,34 @@ class Ladok3Controller {
         return redirect(action: 'index')
     }
 
+    def triggerUpdateL3Events4EduJob() {
+        Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
+        List<Edu> edus = []
+        Edu.values().sort {it.fullName}.each {Edu e ->
+            if(settingsService.isLadok3EnabledForEdu(e) && settingsService.getPathForCertByEdu(e) && settingsService.getPassWordForCertByEdu(e)) {
+                edus << e
+            }
+        }
+        if(params.trigger && edu) {
+            UpdateL3Events4EduJob.triggerNow([edu: edu.name])
+        }
+        [edu: edu, edus: edus]
+    }
+
+    def triggerUpdateL3Kurs4EduJob() {
+        Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
+        List<Edu> edus = []
+        Edu.values().sort {it.fullName}.each {Edu e ->
+            if(settingsService.isLadok3EnabledForEdu(e) && settingsService.getPathForCertByEdu(e) && settingsService.getPassWordForCertByEdu(e)) {
+                edus << e
+            }
+        }
+        if(params.trigger && edu) {
+            UpdateL3Kurs4EduJob.triggerNow([edu: edu.name])
+        }
+        [edu: edu, edus: edus]
+    }
+
     def triggerUpdateL3Program4EduJob() {
         Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
         List<Edu> edus = []

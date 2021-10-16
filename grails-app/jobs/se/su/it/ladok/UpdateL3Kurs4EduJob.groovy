@@ -38,6 +38,6 @@ class UpdateL3Kurs4EduJob {
         } else {
             log.info "Missing Edu"
         }
-        log.info "UpdateL3Kurs4EduJob.execute(): is done in ${System.currentTimeMillis()-start} ms"
+        log.info "UpdateL3Kurs4EduJob.execute(${edu}): is done in ${System.currentTimeMillis()-start} ms"
     }
 }
