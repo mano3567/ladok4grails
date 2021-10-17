@@ -25,6 +25,10 @@ databaseChangeLog = {
                 constraints(nullable: "false")
             }
 
+            column(name: "finansierings_form_id", type: "INTEGER") {
+                constraints(nullable: "false")
+            }
+
             column(name: "installt", type: "BIT(1)") {
                 constraints(nullable: "false")
             }
@@ -69,6 +73,10 @@ databaseChangeLog = {
                 constraints(nullable: "false")
             }
 
+            column(name: "undervisnings_tid_id", type: "INTEGER") {
+                constraints(nullable: "false")
+            }
+
             column(name: "utannonserat", type: "BIT(1)") {
                 constraints(nullable: "false")
             }
@@ -88,7 +96,6 @@ databaseChangeLog = {
             column(name: "utbildnings_typ_id", type: "INTEGER") {
                 constraints(nullable: "false")
             }
-
         }
     }
 }

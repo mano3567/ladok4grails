@@ -57,6 +57,10 @@ class L3Utbildning {
         return L3Organisation.findByEduAndUid(edu, organisationUid)
     }
 
+    List<L3UtbildningsTillfalle> getUtbildningsTillfallen() {
+        return L3UtbildningsTillfalle.findAllByEduAndUtbildningsInstansUid(edu, uid)
+    }
+
     L3UtbildningsTyp getUtbildningsTyp() {
         return utbildningsTypId>0 ? L3UtbildningsTyp.findByLadokIdAndEdu(utbildningsTypId, edu) : null
     }

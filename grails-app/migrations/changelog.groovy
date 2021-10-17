@@ -13,6 +13,7 @@ databaseChangeLog = {
     include file: 'L3UndervisningsTid.groovy'
     include file: 'L3Utbildning.groovy'
     include file: 'L3UtbildningsTillfalle.groovy'
+    include file: 'L3UtbildningsTillfallePeriod.groovy'
     include file: 'L3UtbildningsTyp.groovy'
     include file: 'L3StudentKontaktUppgifter.groovy'
 }

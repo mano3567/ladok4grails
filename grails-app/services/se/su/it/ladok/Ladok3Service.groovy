@@ -793,6 +793,20 @@ class Ladok3Service {
                                 educationEvent = L3KursPaketeringTillfalle.findOrCreateByEduAndUid(edu, eventUid)
                             }
                             if(educationEvent) {
+                                Map eventAttributes = httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/utbildningsinformation/utbildningstillfalle/${eventUid}", "application/vnd.ladok-utbildningsinformation+json")
+                                String finansieringsform = eventAttributes.Attributvarden.find { it.Namn == "utbildning.attribut.finansieringsform" }?.Varde ?: "-1"
+                                try {
+                                    educationEvent.finansieringsFormId = Integer.parseInt(finansieringsform)
+                                } catch(Throwable exception) {
+                                    educationEvent.finansieringsFormId = -1
+                                }
+                                String undervisningstid = eventAttributes.Attributvarden.find { it.Namn == "utbildning.attribut.undervisningstid" }?.Varde ?: "-1"
+                                try {
+                                    educationEvent.undervisningsTidId = Integer.parseInt(undervisningstid)
+                                } catch(Throwable exception) {
+                                    educationEvent.undervisningsTidId = -1
+                                }
+
                                 educationEvent.installt = event.get('Installt', false) as boolean
                                 educationEvent.organisationUid = event.get('OrganisationUID', null) as String
                                 educationEvent.startPeriodId = startPeriodId
@@ -827,6 +841,29 @@ class Ladok3Service {
                                     }
                                 }
                                 educationEvent.save(failOnError: true)
+
+                                event.Tillfallesperioder.each { Map tillfallesperiod ->
+                                    String tpuid = tillfallesperiod.get('Uid', null) as String
+                                    if(tpuid) {
+                                        L3UtbildningsTillfallePeriod utbildningsTillfallePeriod = L3UtbildningsTillfallePeriod.findOrCreateByUid(tpuid)
+                                        utbildningsTillfallePeriod.edu = edu
+                                        utbildningsTillfallePeriod.omfattningsVarde = tillfallesperiod.Omfattningsvarde ? Double.parseDouble(tillfallesperiod.Omfattningsvarde as String) : 0.0
+                                        utbildningsTillfallePeriod.utbildningsTillfalle = L3UtbildningsTillfalle.findByEduAndUid(edu, eventUid)
+
+                                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+                                        Date first = tillfallesperiod.ForstaUndervisningsdatum ? simpleDateFormat.parse(tillfallesperiod.ForstaUndervisningsdatum as String) : null
+                                        utbildningsTillfallePeriod.forstaUndervisningsDatum = first
+                                        utbildningsTillfallePeriod.period = L3Period.findByEduAndPeriodTypIdAndFromDatumLessThanEqualsAndTomDatumGreaterThanEquals(edu, 2, first, first)
+                                        if(!utbildningsTillfallePeriod.period) {
+                                            utbildningsTillfallePeriod.period = L3Period.findByEduAndPeriodTypIdAndFromDatumLessThanEqualsAndTomDatumGreaterThanEquals(edu, 3, first, first)
+                                        }
+                                        if(!utbildningsTillfallePeriod.period) {
+                                            utbildningsTillfallePeriod.period = L3Period.findByEduAndPeriodTypIdAndFromDatumLessThanEqualsAndTomDatumGreaterThanEquals(edu, 1, first, first)
+                                        }
+                                        utbildningsTillfallePeriod.sistaUndervisningsDatum = tillfallesperiod.SistaUndervisningsdatum ? simpleDateFormat.parse(tillfallesperiod.SistaUndervisningsdatum as String) : null
+                                        utbildningsTillfallePeriod.save(failOnError: true)
+                                    }
+                                }
                             }
                         }
                     }

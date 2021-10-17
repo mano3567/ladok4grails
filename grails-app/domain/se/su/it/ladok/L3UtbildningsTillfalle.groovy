@@ -3,6 +3,7 @@ package se.su.it.ladok
 class L3UtbildningsTillfalle {
     Date dateCreated
     Edu edu
+    int finansieringsFormId = -1
     boolean installt = false
     Date lastUpdated
     double omfattningsVarde = 0.0
@@ -15,6 +16,7 @@ class L3UtbildningsTillfalle {
     int studieTaktId = -1 // StudietaktID
     String uid
     int undervisningsFormId = -1 // UndervisningsformID
+    int undervisningsTidId = -1
     boolean utannonserat = false
     String utbildningsInstansUid // UtbildningsinstansUID
     String utbildningsMallUid // UtbildningsmallUID
@@ -32,5 +34,17 @@ class L3UtbildningsTillfalle {
         utbildningsInstansUid(nullable: false, blank: false)
         utbildningsMallUid(nullable: true)
         utbildningsTillfallesKod(nullable: false, blank: false)
+    }
+
+    L3Period getStartPeriod() {
+        return L3Period.findByEduAndLadokId(edu, startPeriodId)
+    }
+
+    L3Utbildning getUtbildning() {
+        return L3Utbildning.findByEduAndUid(edu, utbildningsInstansUid)
+    }
+
+    L3UtbildningsTyp getUtbildningsTyp() {
+        return utbildningsTypId>0 ? L3UtbildningsTyp.findByLadokIdAndEdu(utbildningsTypId, edu) : null
     }
 }

@@ -124,6 +124,9 @@
                 <div class="col-lg-8"><strong>Benämning</strong></div>
             </div>
             <hr class="mb-1"/>
+            <div class="row mb-1">
+                <div class="col-lg-12">${education.getChildren().size()} children</div>
+            </div>
             <g:each in="${education.getChildren()}" var="child">
                 <div class="row mb-1">
                     <div class="col-lg-2"><g:link action="showUtbildning" id="${child.id}">${child.utbildningsKod}</g:link></div>
@@ -133,5 +136,22 @@
                 <hr class="mb-1"/>
             </g:each>
         </g:if>
+        <hr class="mb-1"/>
+        <div class="row mb-1">
+            <div class="col-lg-12">${education.getUtbildningsTillfallen().size()} tillfällen</div>
+        </div>
+        <g:each in="${education.getUtbildningsTillfallen()}" var="educationEvent">
+            <div class="row mb-1">
+                <div class="col-lg-3">${educationEvent.utbildningsTillfallesKod}</div>
+                <div class="col-lg-3">${educationEvent.getStartPeriod()?.kod}</div>
+                <div class="col-lg-2">
+                    <g:formatDate date="${educationEvent.startDatum}" format="yyyy-MM-dd"/>
+                </div>
+                <div class="col-lg-2">
+                    <g:formatDate date="${educationEvent.slutDatum}" format="yyyy-MM-dd"/>
+                </div>
+                <div class="col-lg-2">${educationEvent.getUtbildningsTyp()?.kod}</div>
+            </div>
+        </g:each>
     </body>
 </html>
