@@ -36,12 +36,36 @@ class L3UtbildningsTillfalle {
         utbildningsTillfallesKod(nullable: false, blank: false)
     }
 
+    L3FinansieringsForm getFinansieringsForm() {
+        return L3FinansieringsForm.findByEduAndLadokId(edu, finansieringsFormId)
+    }
+
+    L3Organisation getOrganisation() {
+        return L3Organisation.findByEduAndUid(edu, organisationUid)
+    }
+
     L3Period getStartPeriod() {
         return L3Period.findByEduAndLadokId(edu, startPeriodId)
     }
 
+    L3StudieLokalisering gertStudieLokalisering() {
+        return L3StudieLokalisering.findByEduAndLadokId(edu, studieLokaliseringId)
+    }
+
+    L3StudieTakt getSTudieTakt() {
+        return L3StudieTakt.findByEduAndLadokId(edu, studieTaktId)
+    }
+
+    L3UndervisningsTid getUndervisningsTid() {
+        return L3UndervisningsTid.findByEduAndLadokId(edu, undervisningsTidId)
+    }
+
     L3Utbildning getUtbildning() {
         return L3Utbildning.findByEduAndUid(edu, utbildningsInstansUid)
+    }
+
+    List<L3UtbildningsTillfallePeriod> getUtbildningsTillfallePerioder() {
+        return L3UtbildningsTillfallePeriod.findAllByUtbildningsTillfalle(this, [sort: 'forstaUndervisningsDatum'])
     }
 
     L3UtbildningsTyp getUtbildningsTyp() {

@@ -142,7 +142,9 @@
         </div>
         <g:each in="${education.getUtbildningsTillfallen()}" var="educationEvent">
             <div class="row mb-1">
-                <div class="col-lg-3">${educationEvent.utbildningsTillfallesKod}</div>
+                <div class="col-lg-3">
+                    <g:link action="showUtbildningsTillfalle" id="${educationEvent.id}">${educationEvent.utbildningsTillfallesKod}</g:link>
+                </div>
                 <div class="col-lg-3">${educationEvent.getStartPeriod()?.kod}</div>
                 <div class="col-lg-2">
                     <g:formatDate date="${educationEvent.startDatum}" format="yyyy-MM-dd"/>

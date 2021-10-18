@@ -87,18 +87,12 @@ class Ladok3Controller {
         [education: education, otherVersions: otherVersions]
     }
 
-    def test() {
-//        UpdateL3Kurs4EduJob.triggerNow([edu: Edu.SU.name])
-        /*
-        L3Utbildning.findAllByEduAndSenasteVersionAndAvvecklad(Edu.HH, true, false,  [max: 1000]).each { L3Utbildning education ->
-            try {
-                ladok3Service.updateL3UtbildningsEventByEduAndUid(education.edu, education.uid, education.getUtbildningsTyp().kod)
-            } catch(Throwable exception) {
-            }
+    def showUtbildningsTillfalle() {
+        L3UtbildningsTillfalle educationEvent = params.long('id') ? L3UtbildningsTillfalle.get(params.long('id')) : null
+        if(!educationEvent) {
+            log.info "Missing education"
         }
-         */
-
-        return render(text: "Blahonga")
+        [educationEvent: educationEvent]
     }
 
     def triggerFeedInitializeJob() {
