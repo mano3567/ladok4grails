@@ -1,6 +1,6 @@
 package se.su.it.ladok
 
-class UpdateL3Events4EduJob {
+class UpdateL3CourseEventsJob {
     static triggers = {
         // no defined trigger, we schedule it manually
     }
@@ -18,11 +18,11 @@ class UpdateL3Events4EduJob {
         long start = System.currentTimeMillis()
         Edu edu = Edu.findByName(context.mergedJobDataMap.get('edu') as String)
 
-        log.info "Starting UpdateL3Events4EduJob.execute() for ${edu}"
+        log.info "Starting UpdateL3CourseEventsJob.execute() for ${edu}"
         if(edu) {
             if(settingsService.isLadok3EnabledForEdu(edu)) {
                 if(settingsService.getPassWordForCertByEdu(edu) && settingsService.getPathForCertByEdu(edu)) {
-                    ["2007PRG", "2007INR", "2007KP", '2007FAKP'].each { String educationType ->
+                    ["2007GKURS", "2007AKURS", "2007FKURS"].each { String educationType ->
                         L3UtbildningsTyp utbildningsTyp = L3UtbildningsTyp.findByEduAndKod(edu, educationType)
                         if(utbildningsTyp) {
                             int counter = 0
@@ -51,6 +51,6 @@ class UpdateL3Events4EduJob {
         } else {
             log.info "Missing Edu"
         }
-        log.info "UpdateL3Events4EduJob.execute(${edu}): is done in ${System.currentTimeMillis()-start} ms"
+        log.info "UpdateL3CourseEventsJob.execute(${edu}): is done in ${System.currentTimeMillis()-start} ms"
     }
 }
