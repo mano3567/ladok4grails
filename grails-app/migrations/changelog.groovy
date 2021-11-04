@@ -1,6 +1,7 @@
 databaseChangeLog = {
     include file: 'AtomFeedHistory.groovy'
     include file: 'ConfigValue.groovy'
+    include file: 'L3Avbrott.groovy'
     include file: 'L3BevisBenamning.groovy'
     include file: 'L3FinansieringsForm.groovy'
     include file: 'L3Organisation.groovy'

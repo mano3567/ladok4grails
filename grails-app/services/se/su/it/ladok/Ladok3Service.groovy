@@ -21,6 +21,11 @@ class Ladok3Service {
     HttpClientService httpClientService
     SettingsService settingsService
 
+    @NotTransactional
+    Map fetchStudyBreakByUidAndUtbildningsUid(Edu edu, String studentUid, String utbildningsUid) {
+        return httpClientService.getLadok3MapFromJsonResponseByUrlAndType(edu, "/studiedeltagande/avbrott/student/${studentUid}/utbildning/${utbildningsUid}", "application/vnd.ladok-studiedeltagande+json")
+    }
+
     @Transactional(readOnly = true)
     List<L3Utbildning> findEducations(Edu edu, int educationType, int latestVersion, String search) {
         List<L3Utbildning> educations = []
@@ -254,6 +259,35 @@ class Ladok3Service {
                         settingsService.setLadok3LatestFeedIdForEdu(edu, feedId)
                     }
                 }
+            }
+        }
+    }
+
+    @Transactional
+    void updateL3Avbrott(Edu edu, String studentUid, String utbildningsUid) {
+        Map avbrott = fetchStudyBreakByUidAndUtbildningsUid(edu, studentUid, utbildningsUid)
+        if(avbrott) {
+            String utbildningUid = avbrott.get("Grundkalla", [:]).get("Utbildningsinformation", [:]).get("UtbildningUID", null)
+            if(studentUid && utbildningUid) {
+                String anteckning = avbrott.get("Anteckning", null)
+                if(anteckning && anteckning.trim().length() > 511) {
+                    anteckning = anteckning.trim().substring(0, 511)
+                }
+                L3Avbrott l3Avbrott = L3Avbrott.findOrCreateByStudentUidAndUtbildningUidAndEdu(studentUid, utbildningUid, edu)
+
+                l3Avbrott.anteckning = anteckning
+                String date = avbrott.get("Avbrottsdatum", null) as String
+                if(date) {
+                    try {
+                        l3Avbrott.avbrottsDatum = Date.parse("yyyy-MM-dd", date)
+                    } catch(Throwable exception) {
+                        l3Avbrott.avbrottsDatum = null
+                    }
+                } else {
+                    l3Avbrott.avbrottsDatum = null
+                }
+                l3Avbrott.externReferens = avbrott.get("Externreferens", null) as String
+                l3Avbrott.save(failOnError: true)
             }
         }
     }

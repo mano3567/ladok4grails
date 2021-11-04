@@ -94,6 +94,11 @@
         </div>
         <div class="row mb-1">
             <div class="col-lg-12">
+                <g:link action="triggerUpdateL3CourseEvents4EduJob">Trigga UpdateL3CourseEvents4EduJob</g:link>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-lg-12">
                 <g:link action="triggerUpdateL3Kurs4EduJob">Trigga UpdateL3Kurs4EduJob</g:link>
             </div>
         </div>

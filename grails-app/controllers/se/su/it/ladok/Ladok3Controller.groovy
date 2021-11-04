@@ -90,7 +90,7 @@ class Ladok3Controller {
     def showUtbildningsTillfalle() {
         L3UtbildningsTillfalle educationEvent = params.long('id') ? L3UtbildningsTillfalle.get(params.long('id')) : null
         if(!educationEvent) {
-            log.info "Missing education"
+            log.info "Missing educationevent"
         }
         [educationEvent: educationEvent]
     }
@@ -103,6 +103,20 @@ class Ladok3Controller {
     def triggerUpdateL3BasicsJob() {
         UpdateL3BasicsJob.triggerNow([:])
         return redirect(action: 'index')
+    }
+
+    def triggerUpdateL3CourseEvents4EduJob() {
+        Edu edu = params.edu ? Edu.findByName(params.edu as String) : null
+        List<Edu> edus = []
+        Edu.values().sort {it.fullName}.each {Edu e ->
+            if(settingsService.isLadok3EnabledForEdu(e) && settingsService.getPathForCertByEdu(e) && settingsService.getPassWordForCertByEdu(e)) {
+                edus << e
+            }
+        }
+        if(params.trigger && edu) {
+            UpdateL3CourseEventsJob.triggerNow([edu: edu.name])
+        }
+        [edu: edu, edus: edus]
     }
 
     def triggerUpdateL3Events4EduJob() {
